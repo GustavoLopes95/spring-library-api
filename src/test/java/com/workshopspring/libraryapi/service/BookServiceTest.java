@@ -1,7 +1,8 @@
 package com.workshopspring.libraryapi.service;
 
-import com.workshopspring.libraryapi.commands.CreateBookCommand;
+import com.workshopspring.libraryapi.TestBase;
 import com.workshopspring.libraryapi.entity.Book;
+import com.workshopspring.libraryapi.exceptions.DuplicatedISBN;
 import com.workshopspring.libraryapi.repositories.BookRepository;
 import com.workshopspring.libraryapi.services.BookService;
 import com.workshopspring.libraryapi.services.impl.BookServiceImpl;
@@ -21,7 +22,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = BookServiceTestConfig.class)
-public class BookServiceTest {
+public class BookServiceTest extends TestBase {
 
     BookService service;
 
@@ -39,9 +40,11 @@ public class BookServiceTest {
     @Test
     @DisplayName("Service - Should save book")
     public void shouldSaveBookTest() {
-        var command = new CreateBookCommand("Clean Code", "Robert C. Martin", "001");
-        var book = new Book("Clean Code", "Robert C. Martin", "001");
+        var command = this.makeCreateBookCommand();
+        var book = this.makeBook();
         var savedBook = new Book(1L,"Clean Code", "Robert C. Martin", "001");
+
+        Mockito.when(repository.existsByIsbn(Mockito.anyString())).thenReturn(false);
         Mockito.when(repository.save(book)).thenReturn(savedBook);
 
         var entity = service.save(command);
@@ -50,5 +53,20 @@ public class BookServiceTest {
         Assertions.assertThat(entity.getAuthor()).isEqualTo(book.getAuthor());
         Assertions.assertThat(entity.getTitle()).isEqualTo(book.getTitle());
         Assertions.assertThat(entity.getIsbn()).isEqualTo(book.getIsbn());
+    }
+
+    @Test
+    @DisplayName("Service - should throw domain exception when try create two book with same isn")
+    public void createBookWithDuplicatedIsnTest() {
+        var command = this.makeCreateBookCommand();
+        var book = this.makeBook();
+        Mockito.when(repository.existsByIsbn(Mockito.anyString())).thenReturn(true);
+
+        var exception = Assertions.catchThrowable(() -> service.save(command));
+        Assertions.assertThat(exception)
+                .isInstanceOf(DuplicatedISBN.class)
+                .hasMessage("Duplicated ISBN");
+
+        Mockito.verify(repository, Mockito.never()).save(book);
     }
 }

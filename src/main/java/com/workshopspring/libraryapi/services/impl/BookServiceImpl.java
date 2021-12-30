@@ -2,8 +2,10 @@ package com.workshopspring.libraryapi.services.impl;
 
 import com.workshopspring.libraryapi.commands.CreateBookCommand;
 import com.workshopspring.libraryapi.entity.Book;
+import com.workshopspring.libraryapi.exceptions.DuplicatedISBN;
 import com.workshopspring.libraryapi.repositories.BookRepository;
 import com.workshopspring.libraryapi.services.BookService;
+import org.hibernate.validator.constraints.ISBN;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book save(CreateBookCommand command) {
+        if(repository.existsByIsbn(command.getIsbn())) throw new DuplicatedISBN("Duplicated ISBN", "Book");
         var book = mapper.map(command, Book.class);
         return repository.save(book);
     }
