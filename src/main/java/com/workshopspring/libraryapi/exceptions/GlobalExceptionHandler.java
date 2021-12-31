@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<StandardError> handleResourceNotFoundException(ResourceNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new StandardError(e.getMessage()));
+    }
+
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<StandardError> handleDomainException(DomainException ex) {
         var response = new StandardError(ex.getMessage(), new ArrayList<>(ex.getErrors().entrySet()));
