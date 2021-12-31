@@ -10,9 +10,11 @@ import java.util.Optional;
 public interface BookService {
     Book save(CreateBookCommand book);
 
-    Book getById(Long id);
+    Book findById(Long id);
 
     void delete(Long id);
 
     Book update(Long id, UpdateBookCommand book);
+
+    void updateData(Book entity, UpdateBookCommand command);
 }

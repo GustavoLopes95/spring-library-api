@@ -4,11 +4,13 @@ import com.workshopspring.libraryapi.commands.CreateBookCommand;
 import com.workshopspring.libraryapi.commands.UpdateBookCommand;
 import com.workshopspring.libraryapi.entity.Book;
 import com.workshopspring.libraryapi.exceptions.DuplicatedISBN;
+import com.workshopspring.libraryapi.exceptions.ResourceNotFoundException;
 import com.workshopspring.libraryapi.repositories.BookRepository;
 import com.workshopspring.libraryapi.services.BookService;
 import org.hibernate.validator.constraints.ISBN;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,8 +33,8 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Book getById(Long id) {
-        return null;
+    public Book findById(Long id) {
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     @Override
@@ -42,5 +44,16 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void delete(Long id) {
+        try {
+            repository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException(id);
+        }
+    }
+
+    @Override
+    public void updateData(Book entity, UpdateBookCommand command) {
+        entity.setTitle(command.getTitle());
+        entity.setAuthor(command.getAuthor());
     }
 }

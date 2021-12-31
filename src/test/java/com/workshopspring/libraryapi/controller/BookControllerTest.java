@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -95,7 +94,7 @@ public class BookControllerTest extends TestBase {
         var id = Long.valueOf(1L);
         var book = this.makeBook();
 
-        BDDMockito.given(service.getById(id)).willReturn(book);
+        BDDMockito.given(service.findById(id)).willReturn(book);
         var request = this.createGetRequest("/1");
 
         mvc.perform(request)
@@ -112,7 +111,7 @@ public class BookControllerTest extends TestBase {
         var id = Long.valueOf(1L);
         var book = this.makeBook();
 
-        BDDMockito.given(service.getById(Mockito.anyLong())).willThrow(new ResourceNotFoundException(id));
+        BDDMockito.given(service.findById(Mockito.anyLong())).willThrow(new ResourceNotFoundException(id));
         var request = this.createGetRequest("/1");
 
         mvc.perform(request)
@@ -172,7 +171,7 @@ public class BookControllerTest extends TestBase {
         var command = makeUpdateBookCommand();
         var id = Long.valueOf(1L);
 
-        BDDMockito.willThrow(new ResourceNotFoundException(id)).given(service).update(Mockito.anyLong(), command);
+        BDDMockito.given(service.update(id, command)).willThrow(new ResourceNotFoundException(id));
         var payload = new ObjectMapper().writeValueAsString(command);
         var request = this.createPutRequest("/1", payload);
 
